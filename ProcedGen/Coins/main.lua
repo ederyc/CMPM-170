@@ -125,7 +125,7 @@ player = {
     x = 200,
     y = 200,
     speed = 150,
-    health = 100,
+    health = 2,
     maxHealth = 100
 }
 
@@ -380,6 +380,19 @@ end
 ----------------------------
 -- LOVE2D CALLBACKS & GAME LOGIC
 ----------------------------
+
+local function restartGame()
+    -- Reset player position and health.
+    player.x = 200
+    player.y = 200
+    player.health = player.maxHealth
+
+    -- Clear coins.
+    coins = {}
+
+    -- Clear world chunks.
+    worldChunks = {}
+end
 function love.load()
     love.window.setTitle("Endless WFC World")
     love.window.setMode(800, 600)
@@ -431,9 +444,37 @@ function love.update(dt)
             table.remove(coins, i)
         end
     end
+
+    --Check for restart
+    if love.keyboard.isDown("r") then
+        restartGame()
+    end
 end
 
 function love.draw()
+
+    if player.health <= 0 then
+        love.graphics.setColor(1, 0, 0, 1) -- Red for game over
+        love.graphics.print("Game Over!", love.graphics.getWidth() / 2 - 50, love.graphics.getHeight() / 2 - 20)
+        -- Draw a "Restart" button
+        local buttonX, buttonY, buttonW, buttonH = love.graphics.getWidth() / 2 - 60, love.graphics.getHeight() / 2 + 20, 100, 30
+        love.graphics.setColor(0.2, 0.2, 0.2, 1) -- Button background
+        love.graphics.rectangle("fill", buttonX, buttonY, buttonW, buttonH)
+        love.graphics.setColor(1, 1, 1, 1) -- Button text
+        love.graphics.printf("Respawn", buttonX, buttonY + 8, buttonW, "center")
+
+        -- Check for mouse click on the button
+        if love.mouse.isDown(1) then
+            local mouseX, mouseY = love.mouse.getPosition()
+            if mouseX >= buttonX and mouseX <= buttonX + buttonW and mouseY >= buttonY and mouseY <= buttonY + buttonH then
+            -- Restart the game
+                restartGame()
+            end
+        end
+        return
+    end
+
+
     local screenW, screenH = love.graphics.getWidth(), love.graphics.getHeight()
     love.graphics.push()
     love.graphics.translate(screenW / 2 - player.x, screenH / 2 - player.y)
@@ -486,6 +527,7 @@ function love.draw()
     love.graphics.print("Use WASD or arrow keys to move", 10, screenH - 30)
     love.graphics.print("Collect coins to gain health!", 10, screenH - 50)
     love.graphics.print("Avoid LAVA to prevent health loss!", 10, screenH - 70)
+    love.graphics.print("Press 'R' to restart", 10, screenH - 90)
 
 
     local tileUnderPlayer = getTileAt(player.x, player.y)
