@@ -67,25 +67,25 @@ addMutualRule(TILES.GRASS, TILES.FOREST, "right", "left")
 addMutualRule(TILES.FOREST, TILES.FOREST, "up", "down")
 addMutualRule(TILES.FOREST, TILES.FOREST, "right", "left")
 
--- Rock next to Rock/Sand/Grass
+-- Rock next to Rock/Sand/Grass/Water
 addMutualRule(TILES.ROCK, TILES.ROCK, "up", "down")
 addMutualRule(TILES.ROCK, TILES.ROCK, "right", "left")
 addMutualRule(TILES.ROCK, TILES.SAND, "up", "down")
 addMutualRule(TILES.ROCK, TILES.SAND, "right", "left")
 addMutualRule(TILES.ROCK, TILES.GRASS, "up", "down")
 addMutualRule(TILES.ROCK, TILES.GRASS, "right", "left")
-
 -- Lava next to Lava/Rock
 addMutualRule(TILES.LAVA, TILES.LAVA, "up", "down")
 addMutualRule(TILES.LAVA, TILES.LAVA, "right", "left")
 addMutualRule(TILES.LAVA, TILES.ROCK, "up", "down")
 addMutualRule(TILES.LAVA, TILES.ROCK, "right", "left")
 
--- Mountain next to Mountain/Rock
+-- Mountain next to Mountain/Rock/Sand
 addMutualRule(TILES.MOUNTAIN, TILES.MOUNTAIN, "up", "down")
 addMutualRule(TILES.MOUNTAIN, TILES.MOUNTAIN, "right", "left")
 addMutualRule(TILES.MOUNTAIN, TILES.ROCK, "up", "down")
 addMutualRule(TILES.MOUNTAIN, TILES.ROCK, "right", "left")
+
 
 -- Build an array of all tile IDs for iteration.
 local allTileIDs = {}
@@ -125,7 +125,7 @@ player = {
     x = 200,
     y = 200,
     speed = 150,
-    health = 2,
+    health = 100,
     maxHealth = 100
 }
 
@@ -352,18 +352,19 @@ local function generateChunk(cx, cy)
         cell.possibilities = { [chosenTile] = true }
         cell.entropy = 1
         cell.collapsed = true
-
-        -- *** Coin Spawn Mechanic During Generation ***
-        local coinChance = 0.03  -- 5% chance to spawn a coin on this cell.
-        if math.random() < coinChance then
-            -- Compute the world coordinates of this cell's center.
-            local worldX = cx * (CHUNK_W * CELL_SIZE) + (candidate.x - 1) * CELL_SIZE + CELL_SIZE / 2
-            local worldY = cy * (CHUNK_H * CELL_SIZE) + (candidate.y - 1) * CELL_SIZE + CELL_SIZE / 2
-            table.insert(coins, { x = worldX, y = worldY })
-        end
-
         propagateChunk(chunk, candidate.x, candidate.y)
         candidate = findLowestEntropyCell()
+    end
+
+    local coinChance = 0.005  -- chance to spawn a coin on any tile.
+    for y = 1, CHUNK_H do
+        for x = 1, CHUNK_W do
+            if math.random() < coinChance then
+                local worldX = cx * (CHUNK_W * CELL_SIZE) + (x - 1) * CELL_SIZE + CELL_SIZE / 2
+                local worldY = cy * (CHUNK_H * CELL_SIZE) + (y - 1) * CELL_SIZE + CELL_SIZE / 2
+                table.insert(coins, { x = worldX, y = worldY })
+            end
+        end
     end
 
     return chunk
