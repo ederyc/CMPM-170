@@ -498,8 +498,15 @@ function love.draw()
                     local drawX = offsetX + (x - 1) * cellSize
                     local drawY = offsetY + (y - 1) * cellSize
                     local tileID = next(cell.possibilities) or 0
-                    local color = COLORS[tileID] or COLORS.UNCOLLAPSED
-                    love.graphics.setColor(color)
+
+                    -- Add noise to water to make it look like sun is reflecting off of water
+                    if tileID == TILES.WATER then
+                        local baseBlue = 180 + math.random(20)
+                        love.graphics.setColor(0, 0, baseBlue / 255)
+                    else
+                        local color = COLORS[tileID] or COLORS.UNCOLLAPSED
+                        love.graphics.setColor(color)
+                    end
                     love.graphics.rectangle("fill", drawX, drawY, cellSize - 1, cellSize - 1)
                 end
             end
@@ -512,9 +519,28 @@ function love.draw()
         love.graphics.circle("fill", coin.x, coin.y, 5)
     end
 
-    -- Draw the player.
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.circle("fill", player.x, player.y, 5)
+    -- Draw the player with different shapes depending on if they're in water or not
+    local tileUnderPlayer = getTileAt(player.x, player.y)
+
+    if tileUnderPlayer == TILES.WATER then
+        -- Draw boat
+        love.graphics.setColor(0.4, 0.2, 0) -- Boat color
+        love.graphics.rectangle("fill", player.x - 15, player.y, 30, 8)
+
+        love.graphics.setColor(0.6, 0.6, 0.6) -- Mast
+        love.graphics.line(player.x, player.y, player.x, player.y - 15)
+
+        love.graphics.setColor(1, 1, 1) -- Sail
+        love.graphics.polygon("fill", player.x, player.y - 15, player.x, player.y - 5, player.x + 10, player.y - 10)
+    else
+        -- Draw stick figure
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.line(player.x, player.y - 10, player.x, player.y + 10) -- Body
+        love.graphics.line(player.x - 5, player.y, player.x + 5, player.y)   -- Arms
+        love.graphics.line(player.x, player.y + 10, player.x - 5, player.y + 15) -- Left leg
+        love.graphics.line(player.x, player.y + 10, player.x + 5, player.y + 15) -- Right leg
+        love.graphics.circle("line", player.x, player.y - 15, 5) -- Head
+    end
     love.graphics.pop()
 
     -- Draw HUD (Health Bar)
