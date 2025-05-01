@@ -13,7 +13,10 @@ function Player:new(x, y)
     instance.maxHealth = 100
     instance.level = 1
     instance.coinsCollected = 0
+    instance.totalCoins = 0
     instance.coinsForLevelUp = 10
+    instance.currentMessage = nil
+    instance.messageTimer = 0
 
     return instance
 end
@@ -56,11 +59,22 @@ function Player:update(dt, map, coins, coinBoost, baseDecay, lavaDecay)
 
             -- track coin count
             self.coinsCollected = self.coinsCollected + 1
+            self.totalCoins = self.totalCoins + 1
             if self.coinsCollected >= self.coinsForLevelUp then
                 self:levelUp()
             end
         end
     end
+
+    -- handle level up message timer 
+    if self.currentMessage then
+        self.messageTimer = self.messageTimer + dt
+        if self.messageTimer > 3 then -- Max message duration in seconds is 3
+            self.currentMessage = nil
+            self.messageTimer = 0
+        end
+    end
+
 end
 
 function Player:levelUp()
@@ -71,13 +85,16 @@ function Player:levelUp()
     local COIN_INCREASE_PERCENT = 0.5
     local newCoinAmount = self.coinsForLevelUp + math.floor(self.coinsForLevelUp * COIN_INCREASE_PERCENT)
     self.coinsForLevelUp = newCoinAmount
-
-    print("Level up!")
-
+    self.coinsCollected = 0
+    
+    -- handle level up message
     local message = levelDefs[self.level]
+    self.currentMessage = "Level up!\n"
     if message then
-        print(message.text)
+        self.currentMessage = self.currentMessage .. message.text
     end
+
+    print("Level up! New level: " .. self.level)
 end
 
 function Player:draw(map)
