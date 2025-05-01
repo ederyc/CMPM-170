@@ -17,6 +17,7 @@ function Player:new(x, y)
     instance.coinsForLevelUp = 10
     instance.currentMessage = nil
     instance.messageTimer = 0
+    instance.isErrorMessage = false
 
     return instance
 end
@@ -42,6 +43,11 @@ function Player:update(dt, map, coins, coinBoost, baseDecay, lavaDecay)
     -- only allow water‐tile moves if unlocked
     if not (nextTile == map.TILES.WATER and not (self.level >= 2)) then
         self.x, self.y = nx, ny
+    else
+        -- if we can't move, reset to old position
+        self.x, self.y = oldX, oldY
+        self.isErrorMessage = true
+        self.currentMessage = levelDefs[2].error
     end
 
     -- health decay
@@ -72,6 +78,7 @@ function Player:update(dt, map, coins, coinBoost, baseDecay, lavaDecay)
         if self.messageTimer > 3 then -- Max message duration in seconds is 3
             self.currentMessage = nil
             self.messageTimer = 0
+            self.isErrorMessage = false
         end
     end
 

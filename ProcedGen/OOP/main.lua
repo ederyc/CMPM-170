@@ -119,7 +119,13 @@ function love.draw()
 
         -- level up message
     if player.currentMessage then
-        love.graphics.setColor(1,1,0)  -- yellow text
+
+        if player.isErrorMessage then
+            love.graphics.setColor(1,0,0)  -- red text
+        else
+            love.graphics.setColor(1,1,0)  -- yellow text
+        end
+        
         love.graphics.setFont(levelUp)
         love.graphics.printf(
         player.currentMessage,

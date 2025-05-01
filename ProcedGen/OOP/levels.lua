@@ -4,6 +4,6 @@
 -- [level] = { text = "text you see on screen when reached level" },
 
 return {
-    [2] = { text = "You can now swim in water." },
+    [2] = { text = "You can now swim in water.",  error = "Level up to swim in water"},
     [4] = { text = "You can now battle enemies" },
   }
