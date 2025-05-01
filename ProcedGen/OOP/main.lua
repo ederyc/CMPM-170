@@ -29,6 +29,23 @@ function love.update(dt)
     end
 end
 
+function love.keypressed(key)
+    if key == "space" and player.level >= 3 then  -- Based on levels.lua
+      for i = #map.enemies, 1, -1 do
+        local e = map.enemies[i]
+        local dx = player.x - e.x
+        local dy = player.y - e.y
+        if dx * dx + dy * dy < 400 then
+          e.health = e.health - 10
+          if e.health <= 0 then
+            table.remove(map.enemies, i)
+          end
+        end
+      end
+    end
+  end
+  
+
 function love.draw()
     if player.health <= 0 then
         love.graphics.setColor(1, 0, 0)
@@ -68,8 +85,17 @@ function love.draw()
         end end
     end end
     for _,c in ipairs(map.coins) do c:draw() end
+    for _, e in ipairs(map.enemies) do
+        e:draw()
+      end
     player:draw(map)
     love.graphics.pop()
+
+
+
+
+        -- 
+      
 
 
     -- HUD

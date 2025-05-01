@@ -1,6 +1,7 @@
 -- map.lua
 local Coin = require "coin"
 local Map  = {}
+local Enemy = require "enemies"
 Map.__index = Map
 
 -- Grid & tile settings
@@ -338,6 +339,18 @@ function Map:_generateChunkOnce(cx, cy)
     end
   end
 
+  -- spawn enemies with lower chance
+  for y = 1, self.CHUNK_H do
+    for x = 1, self.CHUNK_W do
+      if math.random() < 0.001 then  -- Lower spawn chance for enemies
+        local wx = cx * (self.CHUNK_W * self.CELL_SIZE) + (x - 1) * self.CELL_SIZE + self.CELL_SIZE / 2
+        local wy = cy * (self.CHUNK_H * self.CELL_SIZE) + (y - 1) * self.CELL_SIZE + self.CELL_SIZE / 2
+        table.insert(self.enemies, Enemy:new(wx, wy))
+      end
+    end
+  end
+  
+
   return chunk
 end
 
@@ -372,6 +385,7 @@ function Map:new()
   local o = setmetatable({}, self)
   o.worldChunks = {}
   o.coins       = {}
+  o.enemies     = {}
   o:initializeRules()
   return o
 end
