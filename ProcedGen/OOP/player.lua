@@ -1,5 +1,6 @@
 -- player.lua
 local Entity = require "entity"
+local levelDefs = require "levels"
 local Player = {}
 Player.__index = Player
 setmetatable(Player, { __index = Entity })
@@ -10,19 +11,35 @@ function Player:new(x, y)
     instance.speed = 150
     instance.health = 100
     instance.maxHealth = 100
+    instance.level = 1
+    instance.coinsCollected = 0
+    instance.coinsForLevelUp = 10
+
     return instance
 end
 
 function Player:update(dt, map, coins, coinBoost, baseDecay, lavaDecay)
+
+    local oldX, oldY = self.x, self.y
+    local moveX, moveY = 0, 0
+    if love.keyboard.isDown("w","up")    then moveY = -1 end
+    if love.keyboard.isDown("s","down")  then moveY =  1 end
+    if love.keyboard.isDown("a","left")  then moveX = -1 end
+    if love.keyboard.isDown("d","right") then moveX =  1 end
+
     -- adjust speed by terrain
     local tile = map:getTileAt(self.x, self.y)
     self.speed = (tile == map.TILES.WATER) and 80 or 150
 
-    -- movement
-    if love.keyboard.isDown("w", "up") then self.y = self.y - self.speed * dt end
-    if love.keyboard.isDown("s", "down") then self.y = self.y + self.speed * dt end
-    if love.keyboard.isDown("a", "left") then self.x = self.x - self.speed * dt end
-    if love.keyboard.isDown("d", "right") then self.x = self.x + self.speed * dt end
+    -- compute proposed new position
+    local nx = self.x + moveX * self.speed * dt
+    local ny = self.y + moveY * self.speed * dt
+    local nextTile = map:getTileAt(nx, ny)
+
+    -- only allow water‐tile moves if unlocked
+    if not (nextTile == map.TILES.WATER and not (self.level >= 2)) then
+        self.x, self.y = nx, ny
+    end
 
     -- health decay
     self.health = self.health - baseDecay * dt
@@ -36,7 +53,30 @@ function Player:update(dt, map, coins, coinBoost, baseDecay, lavaDecay)
         if math.sqrt(dx*dx + dy*dy) < 10 then
             self.health = math.min(self.maxHealth, self.health + coinBoost)
             table.remove(coins, i)
+
+            -- track coin count
+            self.coinsCollected = self.coinsCollected + 1
+            if self.coinsCollected >= self.coinsForLevelUp then
+                self:levelUp()
+            end
         end
+    end
+end
+
+function Player:levelUp()
+    
+    self.level    = self.level + 1
+
+    -- increase coins for next level up by 50%
+    local COIN_INCREASE_PERCENT = 0.5
+    local newCoinAmount = self.coinsForLevelUp + math.floor(self.coinsForLevelUp * COIN_INCREASE_PERCENT)
+    self.coinsForLevelUp = newCoinAmount
+
+    print("Level up!")
+
+    local message = levelDefs[self.level]
+    if message then
+        print(message.text)
     end
 end
 
